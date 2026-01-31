@@ -1,0 +1,7 @@
+{% extends 'base.html' %} {% block content %}
+<article>
+  <h1>{{ post.title }}</h1>
+  <p>作者：{{ post.author.username }} • 發佈時間：{{ post.publishedAt }}</p>
+  <div class="post-content">{{ post.htmlContent|safe }}</div>
+</article>
+{% endblock %}

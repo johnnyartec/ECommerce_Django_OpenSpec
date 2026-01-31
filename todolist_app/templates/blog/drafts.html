@@ -1,0 +1,13 @@
+{% extends 'base.html' %} {% block content %}
+<h1>我的草稿</h1>
+<ul>
+  {% for d in drafts %}
+  <li>
+    {{ d.title }} — 最後更新：{{ d.updatedAt }} —
+    <a href="{% url 'blog_edit' slug=d.slug %}">編輯</a>
+  </li>
+  {% empty %}
+  <li>尚無草稿</li>
+  {% endfor %}
+</ul>
+{% endblock %}

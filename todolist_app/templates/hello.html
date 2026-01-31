@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的 Django 待辦清單</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen py-10">
+    <nav class="bg-white shadow mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-bold text-blue-600">Django Todo</span>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <span class="text-gray-700"
+              >你好,
+              <span class="font-semibold">{{ user.username }}</span></span
+            >
+
+            <form action="{% url 'logout' %}" method="post" class="inline">
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm transition"
+              >
+                登出
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="px-4 py-2 border-b">
+        <h1 class="text-gray-800 font-bold text-2xl uppercase">
+          📝 My Todo List
+        </h1>
+      </div>
+
+      <form method="POST" class="w-full max-w-sm mx-auto px-4 py-4">
+        {% csrf_token %}
+        <div class="flex items-center border-b border-blue-500 py-2">
+          {{ form.title }}
+          <button
+            class="flex-shrink-0 bg-blue-500 hover:bg-blue-700 border-blue-500 hover:border-blue-700 text-sm border-4 text-white py-1 px-2 rounded"
+            type="submit"
+          >
+            新增
+          </button>
+        </div>
+      </form>
+
+      <ul class="divide-y divide-gray-200">
+        {% for item in todos %}
+        <li
+          class="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition"
+        >
+          <div class="flex items-center">
+            {% if item.completed %}
+            <span class="text-green-500 mr-3">
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+            </span>
+            <span class="text-gray-400 line-through">{{ item.title }}</span>
+            {% else %}
+            <span class="text-gray-300 mr-3">
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </span>
+            <span class="text-gray-700 font-medium">{{ item.title }}</span>
+            {% endif %}
+          </div>
+
+          <div class="flex space-x-2">
+            {% if not item.completed %}
+            <a
+              href="{% url 'complete_todo' item.id %}"
+              class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+              >完成</a
+            >
+            {% endif %}
+            <a
+              href="{% url 'delete_todo' item.id %}"
+              onclick="return confirm('確定刪除？');"
+              class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+              >刪除</a
+            >
+          </div>
+        </li>
+        {% empty %}
+        <li class="px-4 py-8 text-center text-gray-500 italic">
+          目前空空如也...
+        </li>
+        {% endfor %}
+      </ul>
+
+      <div class="bg-gray-50 px-4 py-3 text-right">
+        <a href="/admin/" class="text-sm text-blue-600 hover:underline"
+          >+ 前往後台新增</a
+        >
+      </div>
+    </div>
+
+    <p class="text-center text-gray-400 text-xs mt-6">
+      Powered by Django 6.0 & Tailwind CSS
+    </p>
+  </body>
+</html>

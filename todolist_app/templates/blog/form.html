@@ -1,0 +1,7 @@
+{% extends 'base.html' %} {% block content %}
+<h1>{% if post %}編輯文章{% else %}新增文章{% endif %}</h1>
+<form method="post">
+  {% csrf_token %} {{ form.as_p }}
+  <button type="submit">儲存</button>
+</form>
+{% endblock %}

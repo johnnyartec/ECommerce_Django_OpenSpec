@@ -1,0 +1,61 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-10">
+  <div
+    class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border-t-4 border-blue-500"
+  >
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">
+      加入 Django Todo 🚀
+    </h2>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %} {% for field in form %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {{ field.label }}
+        </label>
+        <div class="relative">{{ field }}</div>
+        {% if field.help_text %}
+        <p class="mt-1 text-xs text-gray-400 leading-relaxed italic">
+          {{ field.help_text|safe }}
+        </p>
+        {% endif %} {% for error in field.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <button
+        type="submit"
+        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold mt-4 hover:bg-blue-700 transition duration-200 shadow-md"
+      >
+        立即註冊
+      </button>
+    </form>
+
+    <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+      <p class="text-sm text-gray-600">
+        已經有帳號？
+        <a
+          href="{% url 'login' %}"
+          class="text-blue-500 font-medium hover:underline"
+          >點此登入</a
+        >
+      </p>
+    </div>
+  </div>
+
+  <style>
+    input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      outline: none;
+    }
+    input:focus {
+      border-color: #3b82f6;
+      ring: 2px;
+      ring-color: #bfdbfe;
+    }
+  </style>
+</body>
