@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    entrypoint: ["sh", "-c", "uv run manage.py migrate && uv run uvicorn config.asgi:application --host 0.0.0.0 --port 8000"]
+    # 如果要使用環境特定的 .env 檔（例如 .env.production），可在啟動時覆蓋 env_file，如：
+    # docker compose --env-file .env.production up -d
+    # 或在本機建立 .env 檔，內容可透過 env_utility 來覆蓋其他 .env.<ENV>
+
