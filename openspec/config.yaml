@@ -1,0 +1,27 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Full details are in openspec/project.md
+context: |
+  Language: Traditional Chinese (zh-TW)
+  All artifacts must be written in Traditional Chinese.
+  Django 6.x web application with:
+  - Python 3.12+, PostgreSQL, Django Templates
+  - Todo list and Blog features with Markdown support
+  - User authentication and authorization
+  - Model fields use camelCase naming (project convention)
+  - Security: XSS prevention via bleach, Django auth/permissions
+  - Testing: Unit & integration tests for all features
+  - See openspec/project.md for complete tech stack and conventions
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
