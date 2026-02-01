@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "created": "2026-02-01T08:07:58.085033+00:00",
+    "count": 2
+  },
+  "items": [
+    {
+      "id": 1,
+      "categoryName": "圖書",
+      "parent_id": null,
+      "displayOrder": 0,
+      "description": "圖書",
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "categoryName": "電腦書",
+      "parent_id": 1,
+      "displayOrder": 0,
+      "description": "",
+      "isActive": true
+    }
+  ]
+}

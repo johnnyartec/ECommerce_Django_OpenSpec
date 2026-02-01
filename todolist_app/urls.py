@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from . import views_api
+from django.views.generic import TemplateView
 
 urlpatterns = [
     # Todo 相關路由
@@ -13,6 +14,9 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('signup/', views.signup, name='signup'),
+    
+    # CSRF 測試（開發用）
+    path('csrf-test/', TemplateView.as_view(template_name='csrf_test.html'), name='csrf_test'),
     
     # Blog 相關路由
     path('blog/', views.blog_list, name='blog_list'),

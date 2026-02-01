@@ -46,25 +46,42 @@
 
 ## Decisions
 
-### 決策 1: 階層式分類的實作方式
+### 決策 1: 階層式分類的實作方式（已修訂）
 
-**選擇：使用 Django 原生 ForeignKey 自我參照（parent 欄位）**
+**選擇：採用 `django-mptt`（MPTTModel / TreeForeignKey）**
 
-**理由：**
+**修訂說明與理由：**
 
-- 簡單直接，無需額外套件依賴
-- Django ORM 原生支援遞迴查詢（使用 `prefetch_related` 和遞迴邏輯）
-- 適合中小規模分類數量（預期不超過 100 個分類）
-- 維護成本低，團隊熟悉度高
-- 可在未來需要時升級到 django-mptt 或 django-treebeard
+- 原始設計文件中建議先以原生 `ForeignKey` 自我參照實作，考量到開發速度與依賴最小化。
+- 在開發與測試過程中，團隊實際評估到分類查詢與展示的常見模式會頻繁需要樹狀遍歷與子樹查詢，且未來可能增加分類數量與深度。
+- 為了提升查詢效率、簡化樹操作（移動節點、計算深度、取得祖先/後代），決定改為使用成熟套件 `django-mptt`。
+- `django-mptt` 提供的 API 能顯著降低查詢與管理樹狀資料時的程式碼複雜度，也便於 Admin 與 API 的實作。
 
-**替代方案：**
+**影響範圍：**
 
-- **django-mptt**：提供高效能的 Modified Preorder Tree Traversal 演算法，適合大量分類和頻繁查詢。缺點是增加複雜度和依賴。
-- **django-treebeard**：提供多種樹演算法（Adjacency List, Nested Sets, Materialized Path）。功能強大但學習曲線較陡。
-- **路徑儲存（Materialized Path）**：在資料庫儲存完整路徑字串（如 `/1/3/7/`）。查詢效率高但更新成本高。
+- `Category` 模型改為繼承 `MPTTModel`，`parent` 欄位改為 `TreeForeignKey('self', ...)`。
+- 新增 MPTT 所需欄位（`lft`, `rght`, `tree_id`, `level`），並在 migration 中處理現有資料轉換。
+- 在 `INSTALLED_APPS` 中加入 `mptt`，並在生產環境部署前確保依賴安裝（例如 `django-mptt` 已加入 `pyproject.toml` / requirements）。
 
-**決定：先使用原生 ForeignKey，如果效能成為瓶頸再遷移到 MPTT**
+**遷移與轉換摘要：**
+
+1. 新增 MPTT 欄位的 migration（以 idempotent RunPython 實作，避免重複欄位錯誤）。
+2. 提供可回滾的 management command `convert_categories_mptt`：先匯出備份 JSON，再建立 MPTT 欄位並呼叫 `rebuild()`（必要時使用 `Category.objects.rebuild()` 作為 fallback）。
+3. 在轉換後執行完整資料檢查（`check_category_integrity`），並在成功後移除臨時備援欄位（如有）。
+4. 提醒：在測試與 CI 環境中要先安裝 `django-mptt`，否則在 migration 過程中會找不到 `rebuild` 等 API。
+
+**測試 / 驗證重點：**
+
+- 確認 `Category` 的樹結構在轉換後一致（節點數、父子關係、深度）
+- 確認 `Product.categories` 的多對多關聯在轉換後仍然正確
+- 執行 `Category.objects.rebuild()` 或 `mptt.utils.rebuild_tree()`，並在 CI 中加入重建步驟以避免環境差異問題
+
+**參考檔案：**
+
+- 部署檢查表：`openspec/changes/add-product-categories/deploy-checklist.md`（新增）
+- 遷移執行檢查表：`docs/migration-run-checklist.md`（新增）
+
+**決定：正式採用 `django-mptt`，已在實作中完成必要的 migration、轉換命令與測試覆蓋。**
 
 ### 決策 2: 產品與分類的關聯方式
 

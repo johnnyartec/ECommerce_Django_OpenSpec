@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <title>CSRF Test</title>
+  </head>
+  <body>
+    <h1>CSRF Token 測試</h1>
+    <p>如果你看到下面有一串文字，表示 CSRF token 正常生成：</p>
+    <form method="POST" action="/admin/login/">
+      {% csrf_token %}
+      <p>CSRF Token: <strong>{{ csrf_token }}</strong></p>
+      <input type="text" name="username" placeholder="username" />
+      <input type="password" name="password" placeholder="password" />
+      <button type="submit">測試登入</button>
+    </form>
+    <hr />
+    <p>Cookie 檢查：</p>
+    <script>
+      document.write("<p>Cookies: " + document.cookie + "</p>");
+    </script>
+  </body>
+</html>
