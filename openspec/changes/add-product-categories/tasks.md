@@ -3,7 +3,8 @@
 ## 1. 安裝相依與設定
 
 - [x] 1.1 確認 Pillow 已安裝（用於分類圖片處理）
-- [ ] 1.2 決定是否加入 `django-mptt` 或 `django-treebeard`（若要，更新 `pyproject.toml`）
+- [x] 1.2 決定是否加入 `django-mptt` 或 `django-treebeard`（已評估並決議：暫不加入，延後至需要時再引入）  
+      (說明：目前使用自訂 `parent` FK 與遞迴查詢已足以應付小到中型分類樹。若未來需要優化大量讀取/階層查詢，可採用 `django-mptt` 或 `django-treebeard`，並執行遷移計畫。參考：docs/category-guide.md)
 - [x] 1.3 檢查並確認 `config/settings.py` 的 `MEDIA_ROOT`/`MEDIA_URL` 設定
 
 ## 2. 建立資料模型
@@ -57,7 +58,8 @@
       (參考：docs/spec/product-image-deployment.md、docs/category-guide.md)
 - [x] 9.2 檢查磁碟配額與備份策略，避免大量圖片造成空間問題  
       (參考：docs/spec/product-image-deployment.md、docs/category-guide.md)
-- [ ] 9.3 如需效能優化，評估採用 `django-mptt` 並執行遷移計畫
+- [x] 9.3 如需效能優化，評估採用 `django-mptt` 並執行遷移計畫（已評估並決議：目前延後採用，文件包含遷移建議）  
+      (說明：已在 `docs/category-guide.md` 中加入採納條件與遷移步驟與範例設定，若決定採用可依說明更新 `pyproject.toml` 並建立遷移腳本)
 
 ## 10. 最後驗收
 
