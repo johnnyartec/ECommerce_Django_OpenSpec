@@ -53,8 +53,10 @@
 
 ## 9. 部署注意事項
 
-- [ ] 9.1 在生產環境使用 Nginx/Cloud Storage 服務媒體檔案（不要用 Django 直接服務）
-- [ ] 9.2 檢查磁碟配額與備份策略，避免大量圖片造成空間問題
+- [x] 9.1 在生產環境使用 Nginx/Cloud Storage 服務媒體檔案（不要用 Django 直接服務）  
+      (參考：docs/spec/product-image-deployment.md、docs/category-guide.md)
+- [x] 9.2 檢查磁碟配額與備份策略，避免大量圖片造成空間問題  
+      (參考：docs/spec/product-image-deployment.md、docs/category-guide.md)
 - [ ] 9.3 如需效能優化，評估採用 `django-mptt` 並執行遷移計畫
 
 ## 10. 最後驗收
