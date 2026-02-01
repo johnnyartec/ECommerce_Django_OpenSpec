@@ -272,7 +272,13 @@ class ProductIntegrationTest(TestCase):
             'description': '新商品描述',
             'price': '49.99',
             'stockQuantity': '20',
-            'isActive': True
+            'isActive': True,
+            # inline management form (no images)
+            'images-TOTAL_FORMS': '0',
+            'images-INITIAL_FORMS': '0',
+            'images-MIN_NUM_FORMS': '0',
+            'images-MAX_NUM_FORMS': '1000',
+            '_save': 'Save',
         })
         
         # 應該重新導向到商品列表
@@ -331,7 +337,13 @@ class ProductIntegrationTest(TestCase):
             'description': '',
             'price': '75.00',
             'stockQuantity': '100',
-            'isActive': True
+            'isActive': True,
+            # inline management form (no images)
+            'images-TOTAL_FORMS': '0',
+            'images-INITIAL_FORMS': '0',
+            'images-MIN_NUM_FORMS': '0',
+            'images-MAX_NUM_FORMS': '1000',
+            '_save': 'Save',
         })
         
         product.refresh_from_db()
