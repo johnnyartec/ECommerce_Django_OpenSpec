@@ -51,6 +51,23 @@
   - 使用 Pillow 驗證真實圖片格式（防止副檔名偽裝攻擊）
 - **自動清理**：刪除圖片或商品時自動移除實體檔案和縮圖
 
+### 🏷️ 商品分類系統 (Category)
+
+- **階層式分類**：支援無限層級的父子分類結構
+- **多分類標籤**：每個商品可隸屬多個分類（ManyToMany）
+- **分類圖片**：可為每個分類上傳圖片，自動產生縮圖（150x150、800x800）
+- **葉節點約束**：有商品的分類不可再新增子分類（確保資料完整性）
+- **主動/停用**：支援 `isActive` 欄位控制分類顯示
+- **排序功能**：支援 `displayOrder` 自訂分類排序
+- **圖片驗證**：與商品圖片相同的驗證規則（格式、大小、尺寸）
+- **API 端點**：
+  - `GET /app/api/categories/` - 取得所有分類列表
+  - `GET /app/api/categories/<id>/products/?include_children=1` - 取得分類商品（可包含子分類）
+  - `POST /app/api/products/<id>/categories/` - 指派商品到分類（含葉節點驗證）
+- **管理指令**：
+  - `python manage.py cleanup_category_images` - 清理孤立的分類圖片檔案
+  - `python manage.py check_category_integrity [--fix]` - 檢查並修復分類資料完整性
+
 ## 需求
 
 - Python 3.12+

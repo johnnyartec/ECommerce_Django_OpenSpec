@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Todo, BlogPost, Product, ProductImage
+from .models import Todo, BlogPost, Product, ProductImage, Category
 
 
 # 註冊 Todo
@@ -52,11 +52,12 @@ class ProductAdmin(admin.ModelAdmin):
 	
 	提供完整的商品 CRUD 功能，包含搜尋、篩選和欄位組織。
 	"""
-	list_display = ('productName', 'primary_image_preview', 'price', 'stockQuantity', 'isActive', 'createdAt')
-	list_filter = ('isActive', 'createdAt')
+	list_display = ('productName', 'primary_image_preview', 'price', 'stockQuantity', 'isActive', 'createdAt', 'categories_display')
+	list_filter = ('isActive', 'createdAt', 'categories')
 	search_fields = ('productName', 'description')
 	readonly_fields = ('primary_image_preview', 'createdAt', 'updatedAt')
 	inlines = [ProductImageInline]
+	filter_horizontal = ('categories',)
 	
 	fieldsets = (
 		(None, {
@@ -93,4 +94,32 @@ class ProductAdmin(admin.ModelAdmin):
 		return '無圖片'
 	
 	primary_image_preview.short_description = '主要圖片'
+
+	def categories_display(self, obj):
+		cats = obj.categories.all()
+		if not cats:
+			return '-'
+		return ', '.join([c.categoryName for c in cats])
+
+	categories_display.short_description = 'Categories'
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+	list_display = ('categoryName', 'parent', 'product_count', 'displayOrder', 'image_preview')
+	search_fields = ('categoryName',)
+	list_filter = ('parent', 'isActive')
+	readonly_fields = ('image_preview', 'createdAt', 'updatedAt')
+	fields = ('categoryName', 'parent', 'description', 'displayOrder', 'image', 'image_preview', 'isActive')
+
+	def product_count(self, obj):
+		return obj.products.count()
+
+	def image_preview(self, obj):
+		if obj.thumbnail150:
+			return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.thumbnail150.url)
+		return '-'
+
+	image_preview.short_description = '圖片預覽'
+	product_count.short_description = '商品數'
 

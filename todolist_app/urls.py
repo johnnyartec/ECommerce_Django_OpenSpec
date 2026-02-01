@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from . import views_api
 
 urlpatterns = [
     # Todo 相關路由
@@ -19,4 +20,8 @@ urlpatterns = [
     path('blog/drafts/', views.blog_drafts, name='blog_drafts'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('blog/<slug:slug>/edit/', views.blog_edit, name='blog_edit'),
+    # API: categories and product-category assignment
+    path('api/categories/', views_api.api_categories_list, name='api_categories_list'),
+    path('api/categories/<int:category_id>/products/', views_api.api_category_products, name='api_category_products'),
+    path('api/products/<int:product_id>/categories/', views_api.api_assign_product_categories, name='api_assign_product_categories'),
 ]

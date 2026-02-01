@@ -12,6 +12,7 @@ import os
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
+from .image_utils import validate_image_file, make_square_thumbnail, make_preview_thumbnail
 from .utils.markdown_renderer import render_markdown
 
 class Todo(models.Model):
@@ -98,6 +99,7 @@ class Product(models.Model):
     isActive = models.BooleanField(default=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    categories = models.ManyToManyField('Category', related_name='products', blank=True)
 
     class Meta:
         verbose_name = '商品'
@@ -166,6 +168,33 @@ def product_thumbnail150_upload_path(instance, filename):
 def product_thumbnail800_upload_path(instance, filename):
     """產生 800x800 縮圖的上傳路徑"""
     return product_thumbnail_upload_path(instance, filename, '800x800')
+
+
+def category_image_upload_path(instance, filename):
+    """產生分類圖片的上傳路徑。
+    格式: categories/<category_id>/<uuid>_<filename>
+    """
+    ext = os.path.splitext(filename)[1]
+    unique_filename = f"{uuid.uuid4().hex[:8]}_{filename}"
+    # If instance has no id yet, store under temporary folder 'categories/tmp'
+    cat_id = getattr(instance, 'id', None) or 'tmp'
+    return f"categories/{cat_id}/{unique_filename}"
+
+
+def category_thumbnail_upload_path(instance, filename, size):
+    base_name = os.path.splitext(filename)[0]
+    ext = os.path.splitext(filename)[1]
+    unique_filename = f"{uuid.uuid4().hex[:8]}_{base_name}_{size}{ext}"
+    cat_id = getattr(instance, 'id', None) or 'tmp'
+    return f"categories/{cat_id}/thumbs/{unique_filename}"
+
+
+def category_thumbnail150_upload_path(instance, filename):
+    return category_thumbnail_upload_path(instance, filename, '150x150')
+
+
+def category_thumbnail800_upload_path(instance, filename):
+    return category_thumbnail_upload_path(instance, filename, '800x800')
 
 
 class ProductImage(models.Model):
@@ -249,48 +278,20 @@ class ProductImage(models.Model):
         if not self.image:
             return
 
-        # 使用 with 語句確保圖片被正確關閉
-        with Image.open(self.image) as img:
-            # 轉換 RGBA 為 RGB（處理 PNG 透明度）
-            if img.mode in ('RGBA', 'LA', 'P'):
-                background = Image.new('RGB', img.size, (255, 255, 255))
-                if img.mode == 'P':
-                    img = img.convert('RGBA')
-                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
-                img = background
+        try:
+            # validate first (may raise ValidationError)
+            validate_image_file(self.image)
 
-            # 產生 150x150 正方形縮圖（裁切）
-            thumb_150 = img.copy()
-            thumb_150.thumbnail((150, 150), Image.Resampling.LANCZOS)
-            
-            # 建立正方形畫布並置中圖片
-            thumb_150_square = Image.new('RGB', (150, 150), (255, 255, 255))
-            offset = ((150 - thumb_150.width) // 2, (150 - thumb_150.height) // 2)
-            thumb_150_square.paste(thumb_150, offset)
-            
-            # 儲存 150x150 縮圖
-            thumb_150_io = BytesIO()
-            thumb_150_square.save(thumb_150_io, format='JPEG', quality=85)
-            thumb_150_file = ContentFile(thumb_150_io.getvalue())
-            self.thumbnail150.save(
-                f"{os.path.splitext(os.path.basename(self.image.name))[0]}_150x150.jpg",
-                thumb_150_file,
-                save=False
-            )
+            name = os.path.splitext(os.path.basename(self.image.name))[0]
 
-            # 產生 800x800 預覽圖（保持比例）
-            thumb_800 = img.copy()
-            thumb_800.thumbnail((800, 800), Image.Resampling.LANCZOS)
-            
-            # 儲存 800x800 縮圖
-            thumb_800_io = BytesIO()
-            thumb_800.save(thumb_800_io, format='JPEG', quality=85)
-            thumb_800_file = ContentFile(thumb_800_io.getvalue())
-            self.thumbnail800.save(
-                f"{os.path.splitext(os.path.basename(self.image.name))[0]}_800x800.jpg",
-                thumb_800_file,
-                save=False
-            )
+            fname150, content150 = make_square_thumbnail(self.image, size=150)
+            self.thumbnail150.save(f"{name}_150x150.jpg", content150, save=False)
+
+            fname800, content800 = make_preview_thumbnail(self.image, max_size=800)
+            self.thumbnail800.save(f"{name}_800x800.jpg", content800, save=False)
+        except Exception:
+            # Don't let thumbnail errors block the save flow
+            pass
 
     def set_as_primary(self):
         """設定此圖片為主圖，並將同商品的其他圖片主圖狀態取消"""
@@ -446,3 +447,105 @@ def product_image_pre_delete(sender, instance, **kwargs):
                     os.rmdir(parent_dir)
         except Exception:
             pass
+
+
+class Category(models.Model):
+    """商品分類模型（階層式）
+    - categoryName: 分類名稱
+    - parent: 自我參照父分類
+    - image, thumbnail150, thumbnail800: 圖片與縮圖
+    - displayOrder: 同層級排序
+    - description, isActive, createdAt, updatedAt
+    """
+    categoryName = models.CharField(max_length=200, unique=True)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
+    image = models.ImageField(upload_to=category_image_upload_path, blank=True, validators=[FileExtensionValidator(allowed_extensions=['jpg','jpeg','png','webp'])])
+    thumbnail150 = models.ImageField(upload_to=category_thumbnail150_upload_path, blank=True)
+    thumbnail800 = models.ImageField(upload_to=category_thumbnail800_upload_path, blank=True)
+    displayOrder = models.PositiveIntegerField(default=0)
+    description = models.TextField(blank=True)
+    isActive = models.BooleanField(default=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = '商品分類'
+        verbose_name_plural = '商品分類'
+        ordering = ['displayOrder', 'categoryName']
+
+    def __str__(self):
+        return self.categoryName
+
+    def clean(self):
+        # 葉節點約束：如果此分類已有子分類，則不能直接被指派商品；
+        # 如果已有商品，則不可新增子分類。
+        from django.core.exceptions import ValidationError
+
+        # Prevent cycles: parent cannot be self or a descendant
+        if self.parent:
+            ancestor = self.parent
+            while ancestor:
+                if ancestor == self:
+                    raise ValidationError({'parent': '循環的父分類參考不被允許'})
+                ancestor = getattr(ancestor, 'parent', None)
+
+        # If this category has products (existing in DB), it must not have children
+        if self.pk:
+            if self.products.exists() and self.children.exists():
+                raise ValidationError('此分類已有商品，無法同時擁有子分類')
+
+    def generate_thumbnails(self):
+        if not self.image:
+            return
+
+        try:
+            validate_image_file(self.image)
+            name = os.path.splitext(os.path.basename(self.image.name))[0]
+            fname150, content150 = make_square_thumbnail(self.image, size=150)
+            self.thumbnail150.save(f"{name}_150x150.jpg", content150, save=False)
+            fname800, content800 = make_preview_thumbnail(self.image, max_size=800)
+            self.thumbnail800.save(f"{name}_800x800.jpg", content800, save=False)
+        except Exception:
+            # swallow errors to avoid save failures
+            pass
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        # ensure thumbnails created after initial save (so path available)
+        if is_new and self.image and (not self.thumbnail150):
+            self.generate_thumbnails()
+            super().save(update_fields=['thumbnail150', 'thumbnail800'])
+
+    def delete(self, *args, **kwargs):
+        # close files then delete
+        try:
+            if self.image:
+                self.image.close()
+        except Exception:
+            pass
+        try:
+            if self.thumbnail150:
+                self.thumbnail150.close()
+        except Exception:
+            pass
+        try:
+            if self.thumbnail800:
+                self.thumbnail800.close()
+        except Exception:
+            pass
+
+        # record paths
+        image_path = self.image.path if self.image and hasattr(self.image, 'path') else None
+        t150 = self.thumbnail150.path if self.thumbnail150 and hasattr(self.thumbnail150, 'path') else None
+        t800 = self.thumbnail800.path if self.thumbnail800 and hasattr(self.thumbnail800, 'path') else None
+
+        super().delete(*args, **kwargs)
+
+        # remove files
+        for p in (image_path, t150, t800):
+            try:
+                if p and os.path.isfile(p):
+                    os.remove(p)
+            except Exception:
+                pass
