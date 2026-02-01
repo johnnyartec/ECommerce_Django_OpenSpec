@@ -141,6 +141,13 @@ LOGOUT_REDIRECT_URL = '/app/login/'    # 登出後去哪
 # Use a project-local folder for development. Ensure this path is writable.
 STATIC_ROOT = BASE_DIR / 'static'
 
+# Media files (User uploaded content)
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB in bytes
+
 # Production security hardening: enable only when DEBUG is False.
 if not DEBUG:
     # Redirect HTTP to HTTPS

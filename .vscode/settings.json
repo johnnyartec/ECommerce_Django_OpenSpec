@@ -19,6 +19,7 @@
     ".specify/scripts/bash/": true,
     ".specify/scripts/powershell/": true,
     "C:/00_Python/DJango/FirstTest/.venv/Scripts/python.exe": true,
-    "openspec": true
+    "openspec": true,
+    ".\\.venv\\Scripts\\python.exe": true
   }
 }

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Todo, BlogPost, Product
+from django.utils.html import format_html
+from .models import Todo, BlogPost, Product, ProductImage
 
 
 # 註冊 Todo
@@ -16,6 +17,34 @@ class BlogPostAdmin(admin.ModelAdmin):
 	readonly_fields = ('htmlContent', 'publishedAt', 'createdAt', 'updatedAt')
 
 
+class ProductImageInline(admin.TabularInline):
+	"""
+	商品圖片內嵌管理介面。
+	
+	允許在商品編輯頁面直接管理商品圖片。
+	"""
+	model = ProductImage
+	extra = 1
+	fields = ('image_preview', 'image', 'isPrimary', 'displayOrder', 'altText')
+	readonly_fields = ('image_preview', 'uploadedAt')
+	ordering = ('-isPrimary', 'displayOrder')
+	
+	def image_preview(self, obj):
+		"""
+		顯示圖片縮圖預覽。
+		
+		如果圖片已上傳且縮圖存在，顯示 150x150 縮圖。
+		"""
+		if obj.thumbnail150:
+			return format_html(
+				'<img src="{}" width="150" height="150" style="object-fit: cover;" />',
+				obj.thumbnail150.url
+			)
+		return '-'
+	
+	image_preview.short_description = '預覽'
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
 	"""
@@ -23,14 +52,19 @@ class ProductAdmin(admin.ModelAdmin):
 	
 	提供完整的商品 CRUD 功能，包含搜尋、篩選和欄位組織。
 	"""
-	list_display = ('productName', 'price', 'stockQuantity', 'isActive', 'createdAt')
+	list_display = ('productName', 'primary_image_preview', 'price', 'stockQuantity', 'isActive', 'createdAt')
 	list_filter = ('isActive', 'createdAt')
 	search_fields = ('productName', 'description')
-	readonly_fields = ('createdAt', 'updatedAt')
+	readonly_fields = ('primary_image_preview', 'createdAt', 'updatedAt')
+	inlines = [ProductImageInline]
 	
 	fieldsets = (
+		(None, {
+			'fields': (),
+			'description': '💡 提示：請先儲存商品後，即可在下方上傳圖片。'
+		}),
 		('基本資訊', {
-			'fields': ('productName', 'description')
+			'fields': ('productName', 'description', 'primary_image_preview')
 		}),
 		('價格與庫存', {
 			'fields': ('price', 'stockQuantity')
@@ -43,4 +77,20 @@ class ProductAdmin(admin.ModelAdmin):
 			'classes': ('collapse',)
 		}),
 	)
+	
+	def primary_image_preview(self, obj):
+		"""
+		顯示商品主要圖片的預覽。
+		
+		在列表頁面和詳情頁面顯示主要圖片的縮圖。
+		"""
+		primary_image = obj.images.filter(isPrimary=True).first()
+		if primary_image and primary_image.thumbnail150:
+			return format_html(
+				'<img src="{}" width="150" height="150" style="object-fit: cover;" />',
+				primary_image.thumbnail150.url
+			)
+		return '無圖片'
+	
+	primary_image_preview.short_description = '主要圖片'
 
