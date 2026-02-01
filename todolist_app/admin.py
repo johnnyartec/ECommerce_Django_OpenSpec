@@ -1,6 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Todo, BlogPost, Product, ProductImage, Category
+try:
+	from mptt.admin import MPTTModelAdmin
+except Exception:
+	MPTTModelAdmin = admin.ModelAdmin
 
 
 # 註冊 Todo
@@ -65,7 +69,7 @@ class ProductAdmin(admin.ModelAdmin):
 			'description': '💡 提示：請先儲存商品後，即可在下方上傳圖片。'
 		}),
 		('基本資訊', {
-			'fields': ('productName', 'description', 'primary_image_preview')
+			'fields': ('productName', 'description', 'primary_image_preview', 'categories')
 		}),
 		('價格與庫存', {
 			'fields': ('price', 'stockQuantity')
@@ -105,7 +109,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(MPTTModelAdmin):
 	list_display = ('categoryName', 'parent', 'product_count', 'displayOrder', 'image_preview')
 	search_fields = ('categoryName',)
 	list_filter = ('parent', 'isActive')

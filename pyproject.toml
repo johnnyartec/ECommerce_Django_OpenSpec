@@ -12,4 +12,5 @@ dependencies = [
     "markdown>=3.10.1",
     "bleach>=6.3.0",
     "pillow>=12.1.0",
+    "django-mptt>=1.1",
 ]

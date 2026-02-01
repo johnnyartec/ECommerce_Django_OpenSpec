@@ -14,6 +14,12 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 from .image_utils import validate_image_file, make_square_thumbnail, make_preview_thumbnail
 from .utils.markdown_renderer import render_markdown
+try:
+    from mptt.models import MPTTModel, TreeForeignKey
+except Exception:
+    # django-mptt may not be installed in the environment yet; fallback to regular FK
+    MPTTModel = models.Model
+    TreeForeignKey = lambda *args, **kwargs: models.ForeignKey(*args, **kwargs)
 
 class Todo(models.Model):
     # 👈 2. 建立關聯：一對多 (一個 User 有多個 Todo)
@@ -449,7 +455,7 @@ def product_image_pre_delete(sender, instance, **kwargs):
             pass
 
 
-class Category(models.Model):
+class Category(MPTTModel):
     """商品分類模型（階層式）
     - categoryName: 分類名稱
     - parent: 自我參照父分類
@@ -458,7 +464,7 @@ class Category(models.Model):
     - description, isActive, createdAt, updatedAt
     """
     categoryName = models.CharField(max_length=200, unique=True)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
+    parent = TreeForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
     image = models.ImageField(upload_to=category_image_upload_path, blank=True, validators=[FileExtensionValidator(allowed_extensions=['jpg','jpeg','png','webp'])])
     thumbnail150 = models.ImageField(upload_to=category_thumbnail150_upload_path, blank=True)
     thumbnail800 = models.ImageField(upload_to=category_thumbnail800_upload_path, blank=True)
