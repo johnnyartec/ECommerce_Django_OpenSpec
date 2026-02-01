@@ -1,3 +1,4 @@
+```markdown
 ## MODIFIED Requirements
 
 ### Requirement: 檢視商品列表
@@ -71,3 +72,4 @@ The system SHALL provide a user-friendly admin management interface. 系統必�
 
 - **WHEN** 使用者編輯商品
 - **THEN** 系統必須在編輯頁面內嵌顯示圖片管理區塊（使用 inline），允許直接上傳、刪除和排序圖片
+```

@@ -1,3 +1,4 @@
+````markdown
 ## Context
 
 目前 Product 模型只支援文字資料（productName, description, price, stockQuantity），缺少圖片管理功能。此設計文件說明如何在現有架構中整合圖片上傳和管理功能。
@@ -210,3 +211,4 @@ Django 不應在生產環境直接服務媒體檔案，需要 Nginx 或 CDN。
 2. **圖片壓縮品質設定？** - 建議 JPEG 品質 85，需要實測找出最佳平衡點
 3. **是否限制每個商品的圖片數量？** - 建議限制為 10 張，可在 Admin 表單驗證
 4. **刪除商品時的圖片清理策略？** - 建議使用 CASCADE 級聯刪除 + signal 清理實體檔案
+````

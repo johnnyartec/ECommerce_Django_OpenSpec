@@ -1,3 +1,4 @@
+```markdown
 ## ADDED Requirements
 
 ### Requirement: 上傳商品圖片
@@ -162,3 +163,4 @@ The system SHALL serve media files in development environment. 系統必須在�
 
 - **WHEN** 在生產模式（DEBUG=False）下執行
 - **THEN** Django 不應提供媒體檔案服務，需由 Nginx 或 CDN 處理
+```
